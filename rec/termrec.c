@@ -33,6 +33,7 @@ static struct termios ta;
 static int ptym;
 static int sx, sy;
 static int record_f;
+static int stdin_f;
 static recorder rec;
 
 static void sigwinch(int s)
@@ -139,9 +140,15 @@ int main(int argc, char **argv)
     setlocale(LC_CTYPE, "");
     get_rec_parms(argc, argv);
     record_f=open_out(&record_name, format_ext, append);
+    stdin_f=open_log(&stdin_name, append);
     if (record_f==-1)
     {
         fprintf(stderr, "Can't open %s\n", record_name);
+        return 1;
+    }
+    if(stdin_f==-1)
+    {
+        fprintf(stderr, "Can't open %s\n", stdin_name);
         return 1;
     }
     if (!command)
@@ -197,6 +204,7 @@ int main(int argc, char **argv)
             r=read(0, buf, BS);
             if (r<=0)
                 break;
+            write(stdin_f, buf, r);
             if (write(ptym, buf, r) != r)
                 break;
         }
@@ -214,6 +222,7 @@ int main(int argc, char **argv)
 
     close(ptym);
     int err=!ttyrec_w_close(rec);
+    close(stdin_f);
     tty_restore();
     wait(0);
     return err;

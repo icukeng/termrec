@@ -1,6 +1,7 @@
 const char *command, *format, *format_ext;
 int lport,rport;
 char *record_name;
+char *stdin_name;
 int raw;
 int append;
 

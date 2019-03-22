@@ -36,6 +36,7 @@ void get_rec_parms(int argc, char **argv)
     format=0;
     command=0;
     record_name=0;
+    stdin_name=0;
     raw=0;
     append=0;
 #if (defined HAVE_LIBBZ2) || (defined SHIPPED_LIBBZ2)
@@ -105,6 +106,8 @@ void get_rec_parms(int argc, char **argv)
 finish_args:
     if (optind<argc)
         record_name=argv[optind++];
+    if (optind<argc)
+        stdin_name=argv[optind++];
     if (optind<argc)
         die(_("You can specify at most one file to record to.\n"));
 

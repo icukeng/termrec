@@ -56,30 +56,11 @@ static void nameinc(char *add)
 int open_out(char **file_name, const char *format_ext, int append)
 {
     int fd;
-    char add[10],date[24];
-    time_t t;
     const char *error;
 
     if (!*file_name)
     {
-        *add=0;
-        time(&t);
-        strftime(date, sizeof(date), "%Y-%m-%d.%H-%M-%S", localtime(&t));
-        while (1)
-        {
-            if (asprintf(file_name, "%s%s%s%s", date, add, format_ext, append?"":comp_ext) == -1)
-                abort();
-            fd=open(*file_name, (append?O_APPEND:O_CREAT|O_EXCL)|O_WRONLY|O_BINARY, 0666);
-            // We do some autoconf magic to exclude O_BINARY when inappropriate.
-            if (fd!=-1)
-                goto finish;
-            if (errno!=EEXIST)
-                break;
-            free(*file_name);
-            *file_name=0;
-            nameinc(add);
-        }
-        die(_("Can't create a valid file in the current directory: %s\n"), strerror(errno));
+        die(_("Can't create a valid file in the current directory"));
         return -1;
     }
     if (!strcmp(*file_name, "-"))
@@ -93,4 +74,22 @@ finish:
     if ((fd=open_stream(fd, *file_name, append?SM_APPEND:SM_WRITE, &error))==-1)
         die("%s", error);
     return fd;
+}
+
+int open_log(char **file_name, int append)
+{
+    int fd;
+    const char *error;
+
+    if (!*file_name)
+    {
+        die(_("Can't create a valid log in the current directory"));
+        return -1;
+    }
+    if (!(fd=open(*file_name, (append?O_APPEND:O_CREAT|O_TRUNC)|O_WRONLY|O_BINARY, 0666)))
+        die(_("Can't write to the record file (%s): %s\n"), *file_name, strerror(errno));
+    if ((fd=open_stream(fd, *file_name, append?SM_APPEND:SM_WRITE, &error))==-1)
+        die("%s", error);
+    return fd;
+
 }
